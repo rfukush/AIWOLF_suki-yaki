@@ -11,5 +11,5 @@ pip install git+https://github.com/AIWolfSharp/aiwolf-python.git
 Suppose the AIWolf server at localhost is waiting a connection from an agent on port 10000.
 You can connect this sample agent to the server as follows,
 ```
-python start.py -h locahost -p 10000 -n name_you_like
+python start.py -h 127.0.0.1 -p 10000 -n name_you_like
 ```
