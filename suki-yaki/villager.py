@@ -16,7 +16,9 @@
 # limitations under the License.
 
 import random
+import pandas as pd
 from typing import Dict, List
+
 
 from aiwolf import (AbstractPlayer, Agent, Content, GameInfo, GameSetting,
                     Judge, Role, Species, Status, Talk, Topic,
@@ -118,6 +120,12 @@ class SampleVillager(AbstractPlayer):
         self.game_info = game_info
         self.game_setting = game_setting
         self.me = game_info.me
+        if len(self.game_info.agent_list) == 5:
+            self.role_list = ["VILLAGER", "VILLAGER", "SEER", "POSESSED", "WEREWOLF"]
+        else:
+            self.role_list = []
+        self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
+        self.prob[:] = 0.2
         # Clear fields not to bring in information from the last game.
         self.comingout_map.clear()
         self.divination_reports.clear()
@@ -153,20 +161,23 @@ class SampleVillager(AbstractPlayer):
         reported_wolves: List[Agent] = [j.target for j in self.divination_reports
                                         if j.agent not in fake_seers and j.result == Species.WEREWOLF]
         candidates: List[Agent] = self.get_alive_others(reported_wolves)
+        """
         # Vote for one of the alive fake seers if there are no candidates.
         if not candidates:
             candidates = self.get_alive(fake_seers)
         # Vote for one of the alive agents if there are no candidates.
         if not candidates:
             candidates = self.get_alive_others(self.game_info.agent_list)
+        """
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.random_select(candidates)
+            self.vote_candidate = self.prob["WEREWOLF"].idxmax()
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
 
     def vote(self) -> Agent:
+        self.vote_candidate = self.prob["WEREWOLF"].idxmax()
         return self.vote_candidate if self.vote_candidate != AGENT_NONE else self.me
 
     def attack(self) -> Agent:
