@@ -26,6 +26,17 @@ from aiwolf import (AbstractPlayer, Agent, Content, GameInfo, GameSetting,
 from aiwolf.constant import AGENT_NONE
 
 from const import CONTENT_SKIP
+import logging
+
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('suki-yaki/test.log/villager')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 class SampleVillager(AbstractPlayer):
@@ -137,6 +148,10 @@ class SampleVillager(AbstractPlayer):
 
     def update(self, game_info: GameInfo) -> None:
         self.game_info = game_info  # Update game information.
+        logger.debug('update')
+        logger.debug(f'me {self.game_info.me}')
+        logger.debug(f'day {self.game_info.day}')
+        logger.debug(f'attacked_agent {self.game_info.attacked_agent}')
         for i in range(self.talk_list_head, len(game_info.talk_list)):  # Analyze talks that have not been analyzed yet.
             tk: Talk = game_info.talk_list[i]  # The talk to be analyzed.
             talker: Agent = tk.agent
