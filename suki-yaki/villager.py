@@ -135,6 +135,7 @@ class SampleVillager(AbstractPlayer):
             self.role_list = ["VILLAGER", "VILLAGER", "SEER", "POSESSED", "WEREWOLF"]
         else:
             self.role_list = []
+        logger.debug(f'index  {game_info.agent_list}')
         self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
         self.prob[:] = 0.2
         # Clear fields not to bring in information from the last game.
