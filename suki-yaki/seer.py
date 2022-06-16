@@ -25,6 +25,17 @@ from aiwolf.constant import AGENT_NONE
 
 from const import CONTENT_SKIP
 from villager import SampleVillager
+import logging
+
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('suki-yaki/test.log/seer')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 class SampleSeer(SampleVillager):
@@ -49,6 +60,7 @@ class SampleSeer(SampleVillager):
         self.my_judge_queue = deque()
         self.not_divined_agents = []
         self.werewolves = []
+        self.divine_candidate = AGENT_NONE
 
     def initialize(self, game_info: GameInfo, game_setting: GameSetting) -> None:
         super().initialize(game_info, game_setting)
@@ -62,6 +74,8 @@ class SampleSeer(SampleVillager):
         super().day_start()
         # Process a divination result.
         judge: Optional[Judge] = self.game_info.divine_result
+        logger.debug(judge)
+        logger.debug(f'judge_queue  {self.my_judge_queue}')
         if judge is not None:
             self.my_judge_queue.append(judge)
             if judge.target in self.not_divined_agents:
@@ -93,8 +107,12 @@ class SampleSeer(SampleVillager):
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
-
+             
     def divine(self) -> Agent:
-        # Divine a agent randomly chosen from undivined agents.
-        target: Agent = self.random_select(self.not_divined_agents)
-        return target if target != AGENT_NONE else self.me
+        # Divine a agent randomly chosen from undivined agents.[]
+        logger.debug(self.prob)
+        self.divine_candidate = self.prob["WEREWOLF"].idxmax()
+        logger.debug(f'divine_candidate {self.divine_candidate}')
+        #target: Agent = self.random_select(self.not_divined_agents)
+        #return target if target != AGENT_NONE else self.me
+        return self.divine_candidate if self.divine_candidate != AGENT_NONE else self.random_select(self.not_divined_agents)
