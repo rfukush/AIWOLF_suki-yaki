@@ -145,6 +145,12 @@ class SampleVillager(AbstractPlayer):
     def day_start(self) -> None:
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
+        for agent in self.get_alive_others(self.game_info.agent_list):
+            if agent not in self.prob.index:
+                self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
+                self.prob = self.prob.drop(agent)
+            
+        
 
     def update(self, game_info: GameInfo) -> None:
         self.game_info = game_info  # Update game information.
