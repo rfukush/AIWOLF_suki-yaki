@@ -51,5 +51,5 @@ class SampleBodyguard(SampleVillager):
             candidates = self.get_alive_others(self.game_info.agent_list)
         # Update a guard candidate if the candidate is changed.
         if self.to_be_guarded == AGENT_NONE or self.to_be_guarded not in candidates:
-            self.to_be_guarded = self.random_select(candidates)
+            self.to_be_guarded = self.prob["SEER"].idxmax()
         return self.to_be_guarded if self.to_be_guarded != AGENT_NONE else self.me
