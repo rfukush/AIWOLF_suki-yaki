@@ -132,12 +132,24 @@ class SampleVillager(AbstractPlayer):
         self.game_setting = game_setting
         self.me = game_info.me
         if len(self.game_info.agent_list) == 5:
-            self.role_list = ["VILLAGER", "VILLAGER", "SEER", "POSESSED", "WEREWOLF"]
+            self.role_list = ["VILLAGER", "VILLAGER", "SEER", "POSSESSED", "WEREWOLF"]
+            if self.me == "VILLAGER":
+                self.role_list.pop(0)
+            else:
+                self.role_list = [role for role in self.role_list if role != self.me]
+            self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
+            self.prob[:] = 1.0/4
         else:
-            self.role_list = []
+            self.role_list = ["VILLAGER", "VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","SEER", "MEDIUM", "BODYGUARD", "WEREWOLF", "WEREWOLF", "WEREWOLF", "POSSESSED"]
+            if self.me == "VILLAGER":
+                self.role_list.pop(0)
+            elif self.me == "WEREWOLF":
+                self.role_list.pop(-1) 
+            else:
+                self.role_list = [role for role in self.role_list if role != self.me]
+            self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
+            self.prob[:] = 1.0/14
         logger.debug(f'index  {game_info.agent_list}')
-        self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
-        self.prob[:] = 0.2
         # Clear fields not to bring in information from the last game.
         self.comingout_map.clear()
         self.divination_reports.clear()
@@ -151,8 +163,6 @@ class SampleVillager(AbstractPlayer):
                 self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
                 self.prob = self.prob.drop(agent)
             
-        
-
     def update(self, game_info: GameInfo) -> None:
         self.game_info = game_info  # Update game information.
         logger.debug('update')
