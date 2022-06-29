@@ -111,7 +111,7 @@ class SampleSeer(SampleVillager):
     def divine(self) -> Agent:
         # Divine a agent randomly chosen from undivined agents.[]
         logger.debug(self.prob)
-        self.divine_candidate = self.prob["WEREWOLF"].idxmax()
+        self.divine_candidate = self.prob[Role.WEREWOLF].idxmax()
         logger.debug(f'divine_candidate {self.divine_candidate}')
         #target: Agent = self.random_select(self.not_divined_agents)
         #return target if target != AGENT_NONE else self.me

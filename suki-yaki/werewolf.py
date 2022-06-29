@@ -48,13 +48,13 @@ class SampleWerewolf(SamplePossessed):
         self.allies = list(self.game_info.role_map.keys())
         self.humans = [a for a in self.game_info.agent_list if a not in self.allies]
         for ally in self.allies:
-            self.prob.at[ally, "WEREWOLF"] = 0.5
+            self.prob.at[ally, Role.WEREWOLF] = 0.5
             for role in self.role_list:
-                if role != "WEREWOLF":
+                if role != Role.WEREWOLF:
                     self.prob.at[ally, role] = 0
         for human in self.humans:
             self.prob += 1.0 / 12 # WEREWOLFの確率を他の役職に平等に足した
-            self.prob.at[human, "WEREWOLF"] = 0
+            self.prob.at[human, Role.WEREWOLF] = 0
         # Do comingout on the day that randomly selected from the 1st, 2nd and 3rd day.
         self.co_date = random.randint(1, 3)
         # Choose fake role randomly.
@@ -99,7 +99,7 @@ class SampleWerewolf(SamplePossessed):
             candidates = self.get_alive(self.humans)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.attack_vote_candidate == AGENT_NONE or self.attack_vote_candidate not in candidates:
-            self.attack_vote_candidate = self.prob["POSSESSED"].idxmin()
+            self.attack_vote_candidate = self.prob[Role.POSSESSED].idxmin()
             if self.attack_vote_candidate != AGENT_NONE:
                 return Content(AttackContentBuilder(self.attack_vote_candidate))
         return CONTENT_SKIP
