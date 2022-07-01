@@ -44,6 +44,8 @@ class SampleVillager(AbstractPlayer):
 
     me: Agent
     """Myself."""
+    my_role: Role
+    "My role"
     vote_candidate: Agent
     """Candidate for voting."""
     game_info: GameInfo
@@ -131,25 +133,30 @@ class SampleVillager(AbstractPlayer):
         self.game_info = game_info
         self.game_setting = game_setting
         self.me = game_info.me
+        self.my_role = game_info.role_map[self.me]
         if len(self.game_info.agent_list) == 5:
-            self.role_list = ["VILLAGER", "VILLAGER", "SEER", "POSSESSED", "WEREWOLF"]
-            if self.me == "VILLAGER":
+            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
+            if self.my_role == Role.VILLAGER:
                 self.role_list.pop(0)
             else:
-                self.role_list = [role for role in self.role_list if role != self.me]
+                self.role_list = [role for role in self.role_list if role != self.my_role]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
             self.prob[:] = 1.0/4
         else:
-            self.role_list = ["VILLAGER", "VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","VILLAGER","SEER", "MEDIUM", "BODYGUARD", "WEREWOLF", "WEREWOLF", "WEREWOLF", "POSSESSED"]
-            if self.me == "VILLAGER":
+            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.MEDIUM, Role.BODYGUARD, Role.WEREWOLF, Role.WEREWOLF, Role.WEREWOLF, Role.POSSESSED]
+            if self.my_role == Role.VILLAGER:
                 self.role_list.pop(0)
-            elif self.me == "WEREWOLF":
+            elif self.my_role == Role.WEREWOLF:
                 self.role_list.pop(-1) 
             else:
-                self.role_list = [role for role in self.role_list if role != self.me]
+                self.role_list = [role for role in self.role_list if role != self.my_role]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
             self.prob[:] = 1.0/14
-        logger.debug(f'index  {game_info.agent_list}')
+ 
+        logger.debug('initialize')
+        logger.debug(f'me {self.me}')
+        logger.debug(f'my role {self.my_role}')
+        logger.debug(f'prob  {self.prob}')
         # Clear fields not to bring in information from the last game.
         self.comingout_map.clear()
         self.divination_reports.clear()
@@ -203,13 +210,13 @@ class SampleVillager(AbstractPlayer):
         """
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.prob["WEREWOLF"].idxmax()
+            self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
 
     def vote(self) -> Agent:
-        self.vote_candidate = self.prob["WEREWOLF"].idxmax()
+        self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
         return self.vote_candidate if self.vote_candidate != AGENT_NONE else self.me
 
     def attack(self) -> Agent:
