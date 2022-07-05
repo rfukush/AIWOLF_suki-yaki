@@ -175,6 +175,7 @@ class SampleVillager(AbstractPlayer):
         logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
         logger.debug(f'day {self.game_info.day}')
+        logger.debug(f'talklist {self.game_info.talk_list}')
         logger.debug(f'attacked_agent {self.game_info.attacked_agent}')
         for i in range(self.talk_list_head, len(game_info.talk_list)):  # Analyze talks that have not been analyzed yet.
             tk: Talk = game_info.talk_list[i]  # The talk to be analyzed.
@@ -191,6 +192,7 @@ class SampleVillager(AbstractPlayer):
         self.talk_list_head = len(game_info.talk_list)  # All done.
 
     def talk(self) -> Content:
+        logger.debug(f'candidate {self.vote_candidate}')
         # Choose an agent to be voted for while talking.
         #
         # The list of fake seers that reported me as a werewolf.
@@ -209,14 +211,28 @@ class SampleVillager(AbstractPlayer):
             candidates = self.get_alive_others(self.game_info.agent_list)
         """
         # Declare which to vote for if not declare yet or the candidate is changed.
+        logger.debug(f'candidate {self.vote_candidate}')
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
+            
             self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+            type00=type(self.vote_candidate).__name__
+            logger.debug(f'candidate0 {self.vote_candidate}')
+            logger.debug(type00)
+            if type00 == 'Series':
+                self.vote_candidate = self.vote_candidate[0]
+                
+            logger.debug(f'candidate1 {type(self.vote_candidate)}')
+          
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
 
     def vote(self) -> Agent:
         self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+        type00=type(self.vote_candidate).__name__
+        if type00 == 'Series':
+            self.vote_candidate = self.vote_candidate[0]
+                
         return self.vote_candidate if self.vote_candidate != AGENT_NONE else self.me
 
     def attack(self) -> Agent:
