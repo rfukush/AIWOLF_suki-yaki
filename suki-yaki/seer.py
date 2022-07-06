@@ -29,13 +29,13 @@ import logging
 
 
 
-logger = logging.getLogger(__name__)
+""" logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler('suki-yaki/test.log/seer')
+handler = logging.FileHandler('test.log/seer')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
 handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger.addHandler(handler) """
 
 
 class SampleSeer(SampleVillager):
@@ -74,8 +74,8 @@ class SampleSeer(SampleVillager):
         super().day_start()
         # Process a divination result.
         judge: Optional[Judge] = self.game_info.divine_result
-        logger.debug(judge)
-        logger.debug(f'judge_queue  {self.my_judge_queue}')
+        """ logger.debug(judge)
+        logger.debug(f'judge_queue  {self.my_judge_queue}') """
         if judge is not None:
             self.my_judge_queue.append(judge)
             if judge.target in self.not_divined_agents:
@@ -103,16 +103,21 @@ class SampleSeer(SampleVillager):
             candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.random_select(candidates)
+            type00=type(self.vote_candidate).__name__
+            if type00 == 'Series':
+                self.vote_candidate = self.vote_candidate[0]
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
-             
+        
     def divine(self) -> Agent:
         # Divine a agent randomly chosen from undivined agents.[]
-        logger.debug(self.prob)
         self.divine_candidate = self.prob[Role.WEREWOLF].idxmax()
-        logger.debug(f'divine_candidate {self.divine_candidate}')
+        type00=type(self.divine_candidate).__name__
+        if type00 == 'Series':
+            self.divine_candidate = self.divine_candidate[0]
+        """logger.debug(self.prob)
+        logger.debug(f'divine_candidate {self.divine_candidate}') """
         #target: Agent = self.random_select(self.not_divined_agents)
         #return target if target != AGENT_NONE else self.me
         return self.divine_candidate if self.divine_candidate != AGENT_NONE else self.random_select(self.not_divined_agents)
