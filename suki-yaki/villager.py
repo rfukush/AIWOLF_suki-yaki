@@ -159,8 +159,8 @@ class SampleVillager(AbstractPlayer):
     def day_start(self) -> None:
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
-        for agent in self.game_info.agent_list:
-            if not agent in self.get_alive_others(self.game_info.agent_list):
+        #for agent in self.game_info.agent_list:
+            #if not agent in self.get_alive_others(self.game_info.agent_list):
             #if agent not in self.prob.index:
             #    self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
             #    self.prob = self.prob.drop(agent)
@@ -200,12 +200,12 @@ class SampleVillager(AbstractPlayer):
                                         if j.agent not in fake_seers and j.result == Species.WEREWOLF]
         candidates: List[Agent] = self.get_alive_others(reported_wolves)
         logger.debug(candidates)
-        for candidate in candidates:
-            self.prob.at[candidate, Role.WEREWOLF] = 0.8
+        #for candidate in candidates:
+            #self.prob.at[candidate, Role.WEREWOLF] = 0.8
         
-        if self.my_role == Role.VILLAGER:
-            for fake_seer in fake_seers:
-                self.prob.at[candidate, Role.WEREWOLF] = 1
+        #if self.my_role == Role.VILLAGER:
+        #for fake_seer in fake_seers:
+        #        self.prob.at[candidate, Role.WEREWOLF] = 1
 
         """
         # Vote for one of the alive fake seers if there are no candidates.
