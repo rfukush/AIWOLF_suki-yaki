@@ -25,6 +25,19 @@ from aiwolf.constant import AGENT_NONE
 from const import CONTENT_SKIP, JUDGE_EMPTY
 from possessed import SamplePossessed
 
+import logging
+
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('suki-yaki/test.log/werewolf')
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+
 
 class SampleWerewolf(SamplePossessed):
     """Sample werewolf agent."""
@@ -47,8 +60,15 @@ class SampleWerewolf(SamplePossessed):
         super().initialize(game_info, game_setting)
         self.allies = list(self.game_info.role_map.keys())
         self.humans = [a for a in self.game_info.agent_list if a not in self.allies]
+        logger.debug(self.allies)
+        logger.debug(self.humans)
+        logger.debug(self.game_info.agent_list)
         for ally in self.allies:
-            self.prob.at[ally, Role.WEREWOLF] = 0.5
+            #logger.debug(ally.__str__)
+            logger.debug(ally)
+            logger.debug(self.prob)
+            logger.debug(self.prob.at[ally, Role.WEREWOLF])
+            self.prob.at[ally, Role.WEREWOLF] = 1
             for role in self.role_list:
                 if role != Role.WEREWOLF:
                     self.prob.at[ally, role] = 0

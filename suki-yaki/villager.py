@@ -135,25 +135,19 @@ class SampleVillager(AbstractPlayer):
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
         if len(self.game_info.agent_list) == 5:
-            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
-            if self.my_role == Role.VILLAGER:
-                self.role_list.pop(0)
-            else:
-                self.role_list = [role for role in self.role_list if role != self.my_role]
+            self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
-            self.prob[:] = 1.0/4
+            self.prob[:] = 0.5
+            self.prob.at[self.me, self.my_role] = 1
+            
         else:
-            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.MEDIUM, Role.BODYGUARD, Role.WEREWOLF, Role.WEREWOLF, Role.WEREWOLF, Role.POSSESSED]
-            if self.my_role == Role.VILLAGER:
-                self.role_list.pop(0)
-            elif self.my_role == Role.WEREWOLF:
-                self.role_list.pop(-1) 
-            else:
-                self.role_list = [role for role in self.role_list if role != self.my_role]
+            self.role_list = [Role.VILLAGER, Role.SEER, Role.MEDIUM, Role.BODYGUARD, Role.WEREWOLF, Role.POSSESSED]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
-            self.prob[:] = 1.0/14
+            self.prob[:] = 0.5
+            self.prob.at[self.me, self.my_role] = 1
+
  
-        logger.debug('initialize')
+        logger.debug(self.game_info.agent_list)
         logger.debug(f'me {self.me}')
         logger.debug(f'my role {self.my_role}')
         logger.debug(f'prob  {self.prob}')
@@ -165,18 +159,21 @@ class SampleVillager(AbstractPlayer):
     def day_start(self) -> None:
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
-        for agent in self.get_alive_others(self.game_info.agent_list):
-            if agent not in self.prob.index:
-                self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
-                self.prob = self.prob.drop(agent)
+        for agent in self.game_info.agent_list:
+            if not agent in self.get_alive_others(self.game_info.agent_list):
+            #if agent not in self.prob.index:
+            #    self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
+            #    self.prob = self.prob.drop(agent)
+        logger.debug(self.prob)
             
     def update(self, game_info: GameInfo) -> None:
         self.game_info = game_info  # Update game information.
         logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
-        logger.debug(f'day {self.game_info.day}')
-        logger.debug(f'talklist {self.game_info.talk_list}')
-        logger.debug(f'attacked_agent {self.game_info.attacked_agent}')
+        logger.debug(f'statusmap {self.game_info.status_map}')
+        logger.debug(f'executedagent {self.game_info.executed_agent}')
+        logger.debug(f'lastdeadagent {self.game_info.last_dead_agent_list}')
+
         for i in range(self.talk_list_head, len(game_info.talk_list)):  # Analyze talks that have not been analyzed yet.
             tk: Talk = game_info.talk_list[i]  # The talk to be analyzed.
             talker: Agent = tk.agent
@@ -202,6 +199,14 @@ class SampleVillager(AbstractPlayer):
         reported_wolves: List[Agent] = [j.target for j in self.divination_reports
                                         if j.agent not in fake_seers and j.result == Species.WEREWOLF]
         candidates: List[Agent] = self.get_alive_others(reported_wolves)
+        logger.debug(candidates)
+        for candidate in candidates:
+            self.prob.at[candidate, Role.WEREWOLF] = 0.8
+        
+        if self.my_role == Role.VILLAGER:
+            for fake_seer in fake_seers:
+                self.prob.at[candidate, Role.WEREWOLF] = 1
+
         """
         # Vote for one of the alive fake seers if there are no candidates.
         if not candidates:
