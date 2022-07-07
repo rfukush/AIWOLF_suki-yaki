@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import random
+import numpy as np
 import pandas as pd
 from typing import Dict, List
 
@@ -30,14 +31,14 @@ import logging
 
 
 
-logger = logging.getLogger(__name__)
+""" logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler('suki-yaki/test.log/villager')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-
+ """
 
 class SampleVillager(AbstractPlayer):
     """Sample villager agent."""
@@ -71,6 +72,7 @@ class SampleVillager(AbstractPlayer):
         self.divination_reports = []
         self.identification_reports = []
         self.talk_list_head = 0
+        self.strong_agent = AGENT_NONE
 
     def is_alive(self, agent: Agent) -> bool:
         """Return whether the agent is alive.
@@ -135,47 +137,42 @@ class SampleVillager(AbstractPlayer):
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
         if len(self.game_info.agent_list) == 5:
-            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
-            if self.my_role == Role.VILLAGER:
-                self.role_list.pop(0)
-            else:
-                self.role_list = [role for role in self.role_list if role != self.my_role]
+            self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
-            self.prob[:] = 1.0/4
+            self.prob[:] = 0.5
+            self.prob.at[self.me, self.my_role] = 1
         else:
-            self.role_list = [Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.VILLAGER, Role.SEER, Role.MEDIUM, Role.BODYGUARD, Role.WEREWOLF, Role.WEREWOLF, Role.WEREWOLF, Role.POSSESSED]
-            if self.my_role == Role.VILLAGER:
-                self.role_list.pop(0)
-            elif self.my_role == Role.WEREWOLF:
-                self.role_list.pop(-1) 
-            else:
-                self.role_list = [role for role in self.role_list if role != self.my_role]
+            self.role_list = [Role.VILLAGER, Role.SEER, Role.MEDIUM, Role.BODYGUARD, Role.WEREWOLF, Role.POSSESSED]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
-            self.prob[:] = 1.0/14
- 
-        logger.debug('initialize')
+            self.prob[:] = 0.5
+            self.prob.at[self.me, self.my_role] = 1
+
+        """logger.debug('initialize')
         logger.debug(f'me {self.me}')
         logger.debug(f'my role {self.my_role}')
-        logger.debug(f'prob  {self.prob}')
+        logger.debug(f'prob  {self.prob}') """
         # Clear fields not to bring in information from the last game.
         self.comingout_map.clear()
         self.divination_reports.clear()
         self.identification_reports.clear()
 
+
     def day_start(self) -> None:
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
-        for agent in self.get_alive_others(self.game_info.agent_list):
-            if agent not in self.prob.index:
-                self.prob += self.prob.loc[agent] / (len(self.prob) - 1)
-                self.prob = self.prob.drop(agent)
+        self.vote_reports = []
+        for agent in self.game_info.agent_list:
+            if agent not in self.get_alive(self.game_info.agent_list):
+                #logger.debug(agent)
+                #logger.debug(self.prob.loc[agent])
+                self.prob.loc[agent] = np.nan
             
     def update(self, game_info: GameInfo) -> None:
         self.game_info = game_info  # Update game information.
-        logger.debug('update')
+        """ logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
         logger.debug(f'day {self.game_info.day}')
-        logger.debug(f'attacked_agent {self.game_info.attacked_agent}')
+        logger.debug(f'attacked_agent {self.game_info.attacked_agent}') """
         for i in range(self.talk_list_head, len(game_info.talk_list)):  # Analyze talks that have not been analyzed yet.
             tk: Talk = game_info.talk_list[i]  # The talk to be analyzed.
             talker: Agent = tk.agent
@@ -188,9 +185,16 @@ class SampleVillager(AbstractPlayer):
                 self.divination_reports.append(Judge(talker, game_info.day, content.target, content.result))
             elif content.topic == Topic.IDENTIFIED:
                 self.identification_reports.append(Judge(talker, game_info.day, content.target, content.result))
+            elif content.topic == Topic.OPERATOR or content.topic == Topic.ESTIMATE:
+                self.strong_agent = talker
+                #logger.debug(f'strong agent {self.strong_agent}')
+            elif content.topic == Topic.VOTE:
+                if content.subject == self.strong_agent:
+                    self.vote_candidate = content.target
         self.talk_list_head = len(game_info.talk_list)  # All done.
 
     def talk(self) -> Content:
+        #logger.debug(f'candidate {self.vote_candidate}')
         # Choose an agent to be voted for while talking.
         #
         # The list of fake seers that reported me as a werewolf.
@@ -200,23 +204,31 @@ class SampleVillager(AbstractPlayer):
         reported_wolves: List[Agent] = [j.target for j in self.divination_reports
                                         if j.agent not in fake_seers and j.result == Species.WEREWOLF]
         candidates: List[Agent] = self.get_alive_others(reported_wolves)
-        """
-        # Vote for one of the alive fake seers if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive(fake_seers)
-        # Vote for one of the alive agents if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive_others(self.game_info.agent_list)
-        """
+        #logger.debug(candidates)
+        for candidate in candidates:
+            self.prob.at[candidate, Role.WEREWOLF] = 0.8
+        
+        if self.my_role == Role.VILLAGER:
+            for fake_seer in fake_seers:
+                self.prob.at[fake_seer, Role.WEREWOLF] = 1
+
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
             self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+            type00=type(self.vote_candidate).__name__
+            if type00 == 'Series':
+                self.vote_candidate = self.vote_candidate[0]
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
 
     def vote(self) -> Agent:
+        if self.vote_candidate == AGENT_NONE:
+            self.votecandite = self.strong_agent
         self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+        type00=type(self.vote_candidate).__name__
+        if type00 == 'Series':
+            self.vote_candidate = self.vote_candidate[0]
         return self.vote_candidate if self.vote_candidate != AGENT_NONE else self.me
 
     def attack(self) -> Agent:

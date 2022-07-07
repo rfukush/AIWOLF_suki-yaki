@@ -125,6 +125,9 @@ class SamplePossessed(SampleVillager):
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
             self.vote_candidate = self.prob[Role.WEREWOLF].idxmin()
+            type00=type(self.vote_candidate).__name__
+            if type00 == 'Series':
+                self.vote_candidate = self.vote_candidate[0]
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP

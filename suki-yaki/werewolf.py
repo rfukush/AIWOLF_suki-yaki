@@ -48,7 +48,7 @@ class SampleWerewolf(SamplePossessed):
         self.allies = list(self.game_info.role_map.keys())
         self.humans = [a for a in self.game_info.agent_list if a not in self.allies]
         for ally in self.allies:
-            self.prob.at[ally, Role.WEREWOLF] = 0.5
+            self.prob.at[ally, Role.WEREWOLF] = 1
             for role in self.role_list:
                 if role != Role.WEREWOLF:
                     self.prob.at[ally, role] = 0
@@ -100,6 +100,9 @@ class SampleWerewolf(SamplePossessed):
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.attack_vote_candidate == AGENT_NONE or self.attack_vote_candidate not in candidates:
             self.attack_vote_candidate = self.prob[Role.POSSESSED].idxmin()
+            type00=type(self.attack_vote_candidate).__name__
+            if type00 == 'Series':
+                self.attack_vote_candidate = self.attack_vote_candidate[0]
             if self.attack_vote_candidate != AGENT_NONE:
                 return Content(AttackContentBuilder(self.attack_vote_candidate))
         return CONTENT_SKIP
