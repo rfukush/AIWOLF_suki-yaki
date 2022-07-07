@@ -31,15 +31,13 @@ import logging
 
 
 
-""" logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler('suki-yaki/test.log/villager')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
 handler.setFormatter(formatter)
-logger.addHandler(handler)
- """
-
+logger.addHandler(handler) 
 class SampleVillager(AbstractPlayer):
     """Sample villager agent."""
 
@@ -73,6 +71,8 @@ class SampleVillager(AbstractPlayer):
         self.identification_reports = []
         self.talk_list_head = 0
         self.strong_agent = AGENT_NONE
+        self.firstgameflag =   1
+        self.gamecount = 0
 
     def is_alive(self, agent: Agent) -> bool:
         """Return whether the agent is alive.
@@ -136,6 +136,10 @@ class SampleVillager(AbstractPlayer):
         self.game_setting = game_setting
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
+        if self.firstgameflag == 1:
+            self.win = pd.DataFrame(index=self.game_info.agent_list, columns=['werewolves_win','werewolves_lose','villagers_win','villagers_lose'], dtype=float)
+            self.win[:] = 0
+            self.firstgameflag *= 0
         if len(self.game_info.agent_list) == 5:
             self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
@@ -192,6 +196,44 @@ class SampleVillager(AbstractPlayer):
                 if content.subject == self.strong_agent:
                     self.vote_candidate = content.target
         self.talk_list_head = len(game_info.talk_list)  # All done.
+        self.winner = 'villagers'
+        finish_flag = 0
+        for agent in game_info.status_map:
+            logger.debug(agent)
+            status = game_info.status_map[agent]
+            if agent in game_info.role_map:
+                role = game_info.role_map[agent]
+                if len(game_info.role_map) == len(game_info.agent_list):
+                    logger.debug('finish')
+                    finish_flag = 1
+                    logger.debug(agent)
+                    logger.debug(status)
+                    logger.debug(role)
+                    if status == Status.ALIVE and ( role == Role.WEREWOLF or role == Role.POSSESSED ):
+                        self.winner = 'werewolves'
+                        #logger.debug(winner)
+        logger.debug(finish_flag)
+        if finish_flag == 1 :
+            for agent in game_info.status_map:
+                status = game_info.status_map[agent]
+                role = game_info.role_map[agent]
+                if  role == Role.WEREWOLF or role == Role.POSSESSED :
+                    if self.winner == 'werewolves':
+                        self.win.at[agent, 'werewolves_win'] += 1
+
+                    else:
+                        self.win.at[agent, 'werewolves_lose'] += 1
+                else:
+                    if self.winner == 'villagers':
+                        self.win.at[agent, 'villagers_win'] += 1
+                    else:
+                        self.win.at[agent, 'villagers_lose'] += 1
+            logger.debug(self.win)      
+            self.gamecount +=1
+
+                    
+
+        logger.debug(f'stautsmap{type(game_info.status_map)}')
 
     def talk(self) -> Content:
         #logger.debug(f'candidate {self.vote_candidate}')
