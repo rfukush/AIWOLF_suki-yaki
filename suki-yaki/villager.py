@@ -62,7 +62,7 @@ class SampleVillager(AbstractPlayer):
 
     def __init__(self) -> None:
         """Initialize a new instance of SampleVillager."""
-
+        logger.debug('init')
         self.me = AGENT_NONE
         self.vote_candidate = AGENT_NONE
         self.game_info = None  # type: ignore
@@ -71,8 +71,6 @@ class SampleVillager(AbstractPlayer):
         self.identification_reports = []
         self.talk_list_head = 0
         self.strong_agent = AGENT_NONE
-        self.firstgameflag =   1
-        self.gamecount = 0
 
     def is_alive(self, agent: Agent) -> bool:
         """Return whether the agent is alive.
@@ -131,15 +129,15 @@ class SampleVillager(AbstractPlayer):
         """
         return random.choice(agent_list) if agent_list else AGENT_NONE
 
-    def initialize(self, game_info: GameInfo, game_setting: GameSetting) -> None:
+    def initialize(self, game_info: GameInfo, game_setting: GameSetting,w_p,v_p) -> None:
+        logger.debug(w_p)
+        logger.debug(v_p)
         self.game_info = game_info
         self.game_setting = game_setting
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
-        if self.firstgameflag == 1:
-            self.win = pd.DataFrame(index=self.game_info.agent_list, columns=['werewolves_win','werewolves_lose','villagers_win','villagers_lose'], dtype=float)
-            self.win[:] = 0
-            self.firstgameflag *= 0
+        self.winner = 'villagers'
+        logger.debug('initialize0')
         if len(self.game_info.agent_list) == 5:
             self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
@@ -159,6 +157,7 @@ class SampleVillager(AbstractPlayer):
         self.comingout_map.clear()
         self.divination_reports.clear()
         self.identification_reports.clear()
+        #logger.debug(self.win)
 
 
     def day_start(self) -> None:
@@ -196,44 +195,16 @@ class SampleVillager(AbstractPlayer):
                 if content.subject == self.strong_agent:
                     self.vote_candidate = content.target
         self.talk_list_head = len(game_info.talk_list)  # All done.
-        self.winner = 'villagers'
-        finish_flag = 0
-        for agent in game_info.status_map:
-            logger.debug(agent)
-            status = game_info.status_map[agent]
-            if agent in game_info.role_map:
-                role = game_info.role_map[agent]
-                if len(game_info.role_map) == len(game_info.agent_list):
-                    logger.debug('finish')
-                    finish_flag = 1
-                    logger.debug(agent)
-                    logger.debug(status)
-                    logger.debug(role)
-                    if status == Status.ALIVE and ( role == Role.WEREWOLF or role == Role.POSSESSED ):
-                        self.winner = 'werewolves'
-                        #logger.debug(winner)
-        logger.debug(finish_flag)
-        if finish_flag == 1 :
-            for agent in game_info.status_map:
-                status = game_info.status_map[agent]
-                role = game_info.role_map[agent]
-                if  role == Role.WEREWOLF or role == Role.POSSESSED :
-                    if self.winner == 'werewolves':
-                        self.win.at[agent, 'werewolves_win'] += 1
 
-                    else:
-                        self.win.at[agent, 'werewolves_lose'] += 1
-                else:
-                    if self.winner == 'villagers':
-                        self.win.at[agent, 'villagers_win'] += 1
-                    else:
-                        self.win.at[agent, 'villagers_lose'] += 1
-            logger.debug(self.win)      
-            self.gamecount +=1
+
+                        #logger.debug(winner)
+        #logger.debug(finish_flag)
+#            logger.debug(self.win)      
+           # self.gamecount +=1
 
                     
 
-        logger.debug(f'stautsmap{type(game_info.status_map)}')
+        #logger.debug(f'stautsmap{type(game_info.status_map)}')
 
     def talk(self) -> Content:
         #logger.debug(f'candidate {self.vote_candidate}')
@@ -285,5 +256,12 @@ class SampleVillager(AbstractPlayer):
     def whisper(self) -> Content:
         raise NotImplementedError()
 
-    def finish(self) -> None:
+    def finish(self,w_win,v_win) -> None:
+        logger.debug('finish()')
+        logger.debug(w_win)
+        w_win_t = w_win.T
+        (w_win_t/w_win_t.sum()).T
+        logger.debug(w_win.sum(axis=1))
+        logger.debug(v_win)
+
         pass
