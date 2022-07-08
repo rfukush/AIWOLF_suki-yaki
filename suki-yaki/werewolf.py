@@ -105,10 +105,10 @@ class SampleWerewolf(SamplePossessed):
             candidates = self.get_alive(self.humans)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.attack_vote_candidate == AGENT_NONE or self.attack_vote_candidate not in candidates:
-            self.attack_vote_candidate = self.prob[Role.POSSESSED].idxmin()
-            type00=type(self.attack_vote_candidate).__name__
-            if type00 == 'Series':
-                self.attack_vote_candidate = self.attack_vote_candidate[0]
+            if candidates:
+                self.attack_vote_candidate = self.random_select(candidates)
+            else:
+                self.attack_vote_candidate = self.strong_agent
             if self.attack_vote_candidate != AGENT_NONE:
                 return Content(AttackContentBuilder(self.attack_vote_candidate))
         return CONTENT_SKIP
