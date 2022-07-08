@@ -71,6 +71,8 @@ class SampleVillager(AbstractPlayer):
         self.identification_reports = []
         self.talk_list_head = 0
         self.strong_agent = AGENT_NONE
+        self.countflag = 1
+
 
     def is_alive(self, agent: Agent) -> bool:
         """Return whether the agent is alive.
@@ -129,9 +131,7 @@ class SampleVillager(AbstractPlayer):
         """
         return random.choice(agent_list) if agent_list else AGENT_NONE
 
-    def initialize(self, game_info: GameInfo, game_setting: GameSetting,w_p,v_p) -> None:
-        logger.debug(w_p)
-        logger.debug(v_p)
+    def initialize(self, game_info: GameInfo, game_setting: GameSetting) -> None:
         self.game_info = game_info
         self.game_setting = game_setting
         self.me = game_info.me
@@ -157,7 +157,7 @@ class SampleVillager(AbstractPlayer):
         self.comingout_map.clear()
         self.divination_reports.clear()
         self.identification_reports.clear()
-        #logger.debug(self.win)
+        logger.debug(self.countflag)
 
 
     def day_start(self) -> None:
@@ -170,7 +170,7 @@ class SampleVillager(AbstractPlayer):
                 #logger.debug(self.prob.loc[agent])
                 self.prob.loc[agent] = np.nan
             
-    def update(self, game_info: GameInfo) -> None:
+    def update(self, game_info: GameInfo,w_p,v_p) -> None:
         self.game_info = game_info  # Update game information.
         """ logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
@@ -256,12 +256,13 @@ class SampleVillager(AbstractPlayer):
     def whisper(self) -> Content:
         raise NotImplementedError()
 
-    def finish(self,w_win,v_win) -> None:
+    def finish(self,w_win,v_win,w_p,v_p, countflag) -> None:
+        self.w_win = w_win
+        self.v_win = v_win
+        self.countflag = countflag
         logger.debug('finish()')
-        logger.debug(w_win)
-        w_win_t = w_win.T
-        (w_win_t/w_win_t.sum()).T
-        logger.debug(w_win.sum(axis=1))
-        logger.debug(v_win)
-
         pass
+"""         logger.debug(self.w_win)
+        logger.debug(self.v_win)
+        logger.debug(w_p)
+        logger.debug(v_p) """

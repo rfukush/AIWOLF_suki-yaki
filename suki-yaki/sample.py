@@ -55,10 +55,8 @@ class SamplePlayer(AbstractPlayer):
         self.werewolf = SampleWerewolf()
         self.player = self.villager
         self.firstgameflag =   1
-        self.w_win = pd.DataFrame()
-        self.v_win = pd.DataFrame()
-        self.w_p = pd.DataFrame()
-        self.v_p = pd.DataFrame()
+        self.countflag = 1
+
 
     def attack(self) -> Agent:
         return self.player.attack()
@@ -72,9 +70,10 @@ class SamplePlayer(AbstractPlayer):
     def finish(self) -> None:
         df_t = self.w_win.T
         self.w_p = (df_t/df_t.sum()).T
-        df_t1 = self.w_win.T
+        df_t1 = self.v_win.T
         self.v_p = (df_t1/df_t1.sum()).T
-        self.player.finish(self.w_win,self.v_win)
+        self.countflag += 1
+        self.player.finish(self.w_win,self.v_win,self.w_p, self.v_p,self.countflag)
 
     def guard(self) -> Agent:
         return self.player.guard()
@@ -90,6 +89,11 @@ class SamplePlayer(AbstractPlayer):
             self.v_win = pd.DataFrame(index=game_info.agent_list, columns=['villagers_win','villagers_lose'], dtype=float)
             self.v_win[:] = 0
             self.firstgameflag = 0
+            df_t = self.w_win.T
+            self.w_p = (df_t/df_t.sum()).T
+            df_t1 = self.w_win.T
+            self.v_p = (df_t1/df_t1.sum()).T
+
         if role == Role.VILLAGER:
             self.player = self.villager
         elif role == Role.BODYGUARD:
@@ -102,7 +106,7 @@ class SamplePlayer(AbstractPlayer):
             self.player = self.possessed
         elif role == Role.WEREWOLF:
             self.player = self.werewolf
-        self.player.initialize(game_info, game_setting, self.w_p, self.v_p)
+        self.player.initialize(game_info, game_setting)
         #logger.debug(self.win)
 
     def talk(self) -> Content:
@@ -144,7 +148,7 @@ class SamplePlayer(AbstractPlayer):
                     else:
                         self.v_win.at[agent, 'villagers_lose'] += 1
 
-        self.player.update(game_info)
+        self.player.update(game_info, self.w_p, self.v_p)
 
     def vote(self) -> Agent:
         return self.player.vote()
