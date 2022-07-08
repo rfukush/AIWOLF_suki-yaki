@@ -62,6 +62,7 @@ class SampleMedium(SampleVillager):
             self.my_judge_queue.append(judge)
             if judge.result == Species.WEREWOLF:
                 self.found_wolf = True
+                self.prob.at[judge.target, Role.WEREWOLF] = 1
 
     def talk(self) -> Content:
         # Do comingout if it's on scheduled day or a werewolf is found.
@@ -88,14 +89,15 @@ class SampleMedium(SampleVillager):
         if not candidates:
             candidates = self.get_alive(fake_seers)
         # Vote for one of the alive agents if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
-            type00=type(self.vote_candidate).__name__
-            if type00 == 'Series':
-                self.vote_candidate = self.vote_candidate[0]
+            if candidates:
+                self.vote_candidate = self.random_select(candidates)
+            else:
+                if self.strong_vote:
+                    self.vote_candidate = self.strong_vote[-1]
+                else:
+                    self.vote_candite = self.strong_agent
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP

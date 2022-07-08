@@ -160,7 +160,7 @@ class SampleVillager(AbstractPlayer):
     def day_start(self) -> None:
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
-        self.vote_reports = []
+        self.strong_vote = []
         for agent in self.game_info.agent_list:
             if agent not in self.get_alive(self.game_info.agent_list):
                 #logger.debug(agent)
@@ -185,12 +185,12 @@ class SampleVillager(AbstractPlayer):
                 self.divination_reports.append(Judge(talker, game_info.day, content.target, content.result))
             elif content.topic == Topic.IDENTIFIED:
                 self.identification_reports.append(Judge(talker, game_info.day, content.target, content.result))
-            elif content.topic == Topic.OPERATOR or content.topic == Topic.ESTIMATE:
+            elif content.topic == Topic.OPERATOR:
                 self.strong_agent = talker
                 #logger.debug(f'strong agent {self.strong_agent}')
             elif content.topic == Topic.VOTE:
                 if content.subject == self.strong_agent:
-                    self.vote_candidate = content.target
+                    self.strong_vote.append(content.target)
         self.talk_list_head = len(game_info.talk_list)  # All done.
 
     def talk(self) -> Content:
@@ -198,34 +198,41 @@ class SampleVillager(AbstractPlayer):
         # Choose an agent to be voted for while talking.
         #
         # The list of fake seers that reported me as a werewolf.
-        fake_seers: List[Agent] = [j.agent for j in self.divination_reports
+        self.fake_seers: List[Agent] = [j.agent for j in self.divination_reports
                                    if j.target == self.me and j.result == Species.WEREWOLF]
         # Vote for one of the alive agents that were judged as werewolves by non-fake seers.
-        reported_wolves: List[Agent] = [j.target for j in self.divination_reports
-                                        if j.agent not in fake_seers and j.result == Species.WEREWOLF]
-        candidates: List[Agent] = self.get_alive_others(reported_wolves)
+        self.reported_wolves: List[Agent] = [j.target for j in self.divination_reports
+                                        if j.agent not in self.fake_seers and j.result == Species.WEREWOLF]
+        candidates: List[Agent] = self.get_alive_others(self.fake_seers)
         #logger.debug(candidates)
         for candidate in candidates:
             self.prob.at[candidate, Role.WEREWOLF] = 0.8
+            self.vote_candidate = candidate
         
         if self.my_role == Role.VILLAGER:
-            for fake_seer in fake_seers:
+            for fake_seer in self.fake_seers:
                 self.prob.at[fake_seer, Role.WEREWOLF] = 1
 
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+            """self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
             type00=type(self.vote_candidate).__name__
             if type00 == 'Series':
-                self.vote_candidate = self.vote_candidate[0]
+                self.vote_candidate = self.vote_candidate[0] """
+            if self.strong_vote:
+                self.vote_candidate = self.strong_vote[-1]
+            else:
+                self.vote_candite = self.strong_agent
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
 
     def vote(self) -> Agent:
         if self.vote_candidate == AGENT_NONE:
-            self.votecandite = self.strong_agent
-        self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
+            if self.strong_vote:
+                self.vote_candidate = self.strong_vote[-1]
+            else:
+                self.vote_candite = self.strong_agent
         type00=type(self.vote_candidate).__name__
         if type00 == 'Series':
             self.vote_candidate = self.vote_candidate[0]
