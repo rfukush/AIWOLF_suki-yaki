@@ -72,7 +72,8 @@ class SampleVillager(AbstractPlayer):
         self.divination_reports = []
         self.identification_reports = []
         self.talk_list_head = 0
-        self.strong_agent = AGENT_NONE
+        self.strong_agent_v = AGENT_NONE
+        self.strong_agent_w = AGENT_NONE
 
     def is_alive(self, agent: Agent) -> bool:
         """Return whether the agent is alive.
@@ -136,6 +137,8 @@ class SampleVillager(AbstractPlayer):
         self.game_setting = game_setting
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
+        self.winner = 'villagers'
+        self.first_updateflag = 1
         if len(self.game_info.agent_list) == 5:
             self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
             self.prob = pd.DataFrame(index=self.game_info.agent_list, columns=self.role_list, dtype=float)
@@ -167,7 +170,11 @@ class SampleVillager(AbstractPlayer):
                 #logger.debug(self.prob.loc[agent])
                 self.prob.loc[agent] = np.nan
             
-    def update(self, game_info: GameInfo) -> None:
+    def update(self, game_info: GameInfo, w_p, v_p, countflag) -> None:
+        if self.first_updateflag == 1:
+            self.first_updateflag *= 0
+            self.strong_agent_v = v_p["villagers_win"].idxmax()
+            self.strong_agent_w = w_p["werewolves_win"].idxmax()
         self.game_info = game_info  # Update game information.
         """ logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
@@ -185,12 +192,14 @@ class SampleVillager(AbstractPlayer):
                 self.divination_reports.append(Judge(talker, game_info.day, content.target, content.result))
             elif content.topic == Topic.IDENTIFIED:
                 self.identification_reports.append(Judge(talker, game_info.day, content.target, content.result))
-            elif content.topic == Topic.OPERATOR:
-                self.strong_agent = talker
+            #elif content.topic == Topic.OPERATOR:
+                #self.strong_agent = talker
                 #logger.debug(f'strong agent {self.strong_agent}')
             elif content.topic == Topic.VOTE:
-                if content.subject == self.strong_agent:
+                if content.subject == self.strong_agent_v:
                     self.strong_vote.append(content.target)
+                elif content.subject == self.strong_agent_w:
+                    self.strong_vote_w.append(content.target)
         self.talk_list_head = len(game_info.talk_list)  # All done.
 
     def talk(self) -> Content:
@@ -222,7 +231,7 @@ class SampleVillager(AbstractPlayer):
             if self.strong_vote:
                 self.vote_candidate = self.strong_vote[-1]
             else:
-                self.vote_candite = self.strong_agent
+                self.vote_candite = self.strong_agent_w
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
@@ -232,7 +241,7 @@ class SampleVillager(AbstractPlayer):
             if self.strong_vote:
                 self.vote_candidate = self.strong_vote[-1]
             else:
-                self.vote_candite = self.strong_agent
+                self.vote_candite = self.strong_agent_w
         type00=type(self.vote_candidate).__name__
         if type00 == 'Series':
             self.vote_candidate = self.vote_candidate[0]
@@ -250,5 +259,7 @@ class SampleVillager(AbstractPlayer):
     def whisper(self) -> Content:
         raise NotImplementedError()
 
-    def finish(self) -> None:
-        pass
+    def finish(self,w_win,v_win,w_p,v_p, countflag) -> None:
+        self.w_win = w_win
+        self.v_win = v_win
+        self.countflag = countflag

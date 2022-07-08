@@ -91,7 +91,7 @@ class SampleSeer(SampleVillager):
                     self.prob.at[judge.target, Role.VILLAGER] = 0.9
                     self.prob.at[judge.target, Role.WEREWOLF] = 0
 
-    def update(self, game_info) -> None:
+    def update(self, game_info: GameInfo, w_p, v_p, countflag) -> None:
         super().update(game_info)
         if Role.SEER in self.comingout_map.values():
             self.fake_seers = [k for k, v in self.comingout_map.items() if v == Role.SEER]
@@ -123,7 +123,7 @@ class SampleSeer(SampleVillager):
                 if self.strong_vote:
                     self.vote_candidate = self.strong_vote[-1]
                 else:
-                    self.vote_candite = self.strong_agent
+                    self.vote_candite = self.strong_agent_w
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
@@ -131,8 +131,9 @@ class SampleSeer(SampleVillager):
         
     def divine(self) -> Agent:
         # Divine a agent randomly chosen from undivined agents.[]
-        if self.strong_agent in self.not_divined_agents:
-            self.divine_candidate = self.strong_agent
+        if self.strong_agent_w in self.not_divined_agents:
+            self.divine_candidate = self.strong_agent_w
+            self.not_divined_agents.remove(self.strong_agent_w)
         else:
             self.divine_candidate = self.random_select(self.not_divined_agents)
         type00=type(self.divine_candidate).__name__

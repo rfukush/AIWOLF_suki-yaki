@@ -93,10 +93,13 @@ class SampleMedium(SampleVillager):
             candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.prob[Role.WEREWOLF].idxmax()
-            type00=type(self.vote_candidate).__name__
-            if type00 == 'Series':
-                self.vote_candidate = self.vote_candidate[0]
+            if candidates:
+                self.vote_candidate = self.random_select(candidates)
+            else:
+                if self.strong_vote:
+                    self.vote_candidate = self.strong_vote[-1]
+                else:
+                    self.vote_candite = self.strong_agent_w
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP

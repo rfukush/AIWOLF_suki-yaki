@@ -131,10 +131,10 @@ class SamplePossessed(SampleVillager):
             if candidates:
                 self.vote_candidate = self.random_select(candidates)
             else:
-                if self.strong_vote:
-                    self.vote_candidate = self.strong_vote[-1]
+                if self.strong_vote_w:
+                    self.vote_candidate = self.strong_vote_w[-1]
                 else:
-                    self.vote_candite = self.strong_agent
+                    self.vote_candite = self.strong_agent_v
             """ type00=type(self.vote_candidate).__name__
             if type00 == 'Series':
                 self.vote_candidate = self.vote_candidate[0] """
