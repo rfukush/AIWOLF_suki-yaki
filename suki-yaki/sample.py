@@ -148,7 +148,7 @@ class SamplePlayer(AbstractPlayer):
                     else:
                         self.v_win.at[agent, 'villagers_lose'] += 1
 
-        self.player.update(game_info, self.w_p, self.v_p)
+        self.player.update(game_info, self.w_p, self.v_p, self.countflag)
 
     def vote(self) -> Agent:
         return self.player.vote()

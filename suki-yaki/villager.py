@@ -71,7 +71,6 @@ class SampleVillager(AbstractPlayer):
         self.identification_reports = []
         self.talk_list_head = 0
         self.strong_agent = AGENT_NONE
-        self.countflag = 1
 
 
     def is_alive(self, agent: Agent) -> bool:
@@ -137,6 +136,7 @@ class SampleVillager(AbstractPlayer):
         self.me = game_info.me
         self.my_role = game_info.role_map[self.me]
         self.winner = 'villagers'
+        self.first_updateflag = 1
         logger.debug('initialize0')
         if len(self.game_info.agent_list) == 5:
             self.role_list = [Role.VILLAGER, Role.SEER, Role.POSSESSED, Role.WEREWOLF]
@@ -157,7 +157,7 @@ class SampleVillager(AbstractPlayer):
         self.comingout_map.clear()
         self.divination_reports.clear()
         self.identification_reports.clear()
-        logger.debug(self.countflag)
+        #logger.debug(self.countflag)
 
 
     def day_start(self) -> None:
@@ -170,7 +170,13 @@ class SampleVillager(AbstractPlayer):
                 #logger.debug(self.prob.loc[agent])
                 self.prob.loc[agent] = np.nan
             
-    def update(self, game_info: GameInfo,w_p,v_p) -> None:
+    def update(self, game_info: GameInfo,w_p,v_p,countflag) -> None:
+        if self.first_updateflag ==1:
+            logger.debug(w_p)
+            logger.debug(v_p)
+            logger.debug(countflag)
+            self.first_updateflag *= 0
+            #最初にしたい処理
         self.game_info = game_info  # Update game information.
         """ logger.debug('update')
         logger.debug(f'me {self.game_info.me}')
