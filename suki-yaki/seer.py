@@ -82,6 +82,22 @@ class SampleSeer(SampleVillager):
                 self.not_divined_agents.remove(judge.target)
             if judge.result == Species.WEREWOLF:
                 self.werewolves.append(judge.target)
+                self.prob.at[judge.target, Role.WEREWOLF] = 1
+            else:
+                if len(self.game_info.agent_list) == 5:
+                    self.prob.at[judge.target, Role.VILLAGER] = 0.7
+                    self.prob.at[judge.target, Role.WEREWOLF] = 0
+                else:
+                    self.prob.at[judge.target, Role.VILLAGER] = 0.9
+                    self.prob.at[judge.target, Role.WEREWOLF] = 0
+
+    def update(self, game_info) -> None:
+        super().update(game_info)
+        if Role.SEER in self.comingout_map.values():
+            self.fake_seers = [k for k, v in self.comingout_map.items() if v == Role.SEER]
+            for fake_seer in self.fake_seers:
+                if fake_seer in self.not_divined_agents:
+                    self.not_divined_agents.remove(fake_seer)
 
     def talk(self) -> Content:
         # Do comingout if it's on scheduled day or a werewolf is found.
@@ -99,20 +115,26 @@ class SampleSeer(SampleVillager):
             candidates = self.get_alive([a for a in self.comingout_map
                                          if self.comingout_map[a] == Role.SEER])
         # Vote for one of the alive agents if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            type00=type(self.vote_candidate).__name__
-            if type00 == 'Series':
-                self.vote_candidate = self.vote_candidate[0]
+            if candidates:
+                self.vote_candidate = self.random_select(candidates)
+            else:
+                if self.strong_vote:
+                    self.vote_candidate = self.strong_vote[-1]
+                else:
+                    self.vote_candite = self.strong_agent
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP
+
         
     def divine(self) -> Agent:
         # Divine a agent randomly chosen from undivined agents.[]
-        self.divine_candidate = self.prob[Role.WEREWOLF].idxmax()
+        if self.strong_agent in self.not_divined_agents:
+            self.divine_candidate = self.strong_agent
+        else:
+            self.divine_candidate = self.random_select(self.not_divined_agents)
         type00=type(self.divine_candidate).__name__
         if type00 == 'Series':
             self.divine_candidate = self.divine_candidate[0]

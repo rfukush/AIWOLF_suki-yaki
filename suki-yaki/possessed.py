@@ -71,7 +71,7 @@ class SamplePossessed(SampleVillager):
     def get_fake_judge(self) -> Judge:
         """Generate a fake judgement."""
         target: Agent = AGENT_NONE
-        if self.fake_role == Role.SEER:  # Fake seer chooses a target randomly.
+        if self.fake_role == Role.SEER: # Fake seer chooses a target randomly.
             if self.game_info.day != 0:
                 target = self.random_select(self.get_alive(self.not_judged_agents))
         elif self.fake_role == Role.MEDIUM:
@@ -86,7 +86,8 @@ class SamplePossessed(SampleVillager):
         result: Species = Species.WEREWOLF \
             if len(self.werewolves) < self.num_wolves and random.random() < 0.5 \
             else Species.HUMAN
-        return Judge(self.me, self.game_info.day, target, result)
+        judge = Judge(self.me, self.game_info.day, target, result)
+        return judge
 
     def day_start(self) -> None:
         super().day_start()
@@ -98,6 +99,9 @@ class SamplePossessed(SampleVillager):
                 self.not_judged_agents.remove(judge.target)
             if judge.result == Species.WEREWOLF:
                 self.werewolves.append(judge.target)
+
+    
+    
 
     def talk(self) -> Content:
         # Do comingout if it's on scheduled day or a werewolf is found.
@@ -124,10 +128,16 @@ class SamplePossessed(SampleVillager):
             candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
-            self.vote_candidate = self.prob[Role.WEREWOLF].idxmin()
-            type00=type(self.vote_candidate).__name__
+            if candidates:
+                self.vote_candidate = self.random_select(candidates)
+            else:
+                if self.strong_vote:
+                    self.vote_candidate = self.strong_vote[-1]
+                else:
+                    self.vote_candite = self.strong_agent
+            """ type00=type(self.vote_candidate).__name__
             if type00 == 'Series':
-                self.vote_candidate = self.vote_candidate[0]
+                self.vote_candidate = self.vote_candidate[0] """
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP

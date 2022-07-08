@@ -62,6 +62,7 @@ class SampleMedium(SampleVillager):
             self.my_judge_queue.append(judge)
             if judge.result == Species.WEREWOLF:
                 self.found_wolf = True
+                self.prob.at[judge.target, Role.WEREWOLF] = 1
 
     def talk(self) -> Content:
         # Do comingout if it's on scheduled day or a werewolf is found.
