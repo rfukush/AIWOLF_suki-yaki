@@ -133,6 +133,7 @@ class SampleSeer(SampleVillager):
         # Divine a agent randomly chosen from undivined agents.[]
         if self.strong_agent in self.not_divined_agents:
             self.divine_candidate = self.strong_agent
+            self.not_divined_agents.remove(self.strong_agent)
         else:
             self.divine_candidate = self.random_select(self.not_divined_agents)
         type00=type(self.divine_candidate).__name__
