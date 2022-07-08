@@ -47,9 +47,10 @@ class SampleBodyguard(SampleVillager):
             candidates = [a for a in self.comingout_map if self.is_alive(a)
                           and self.comingout_map[a] == Role.MEDIUM]
         # Guard one of the alive sagents if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive_others(self.game_info.agent_list)
         # Update a guard candidate if the candidate is changed.
         if self.to_be_guarded == AGENT_NONE or self.to_be_guarded not in candidates:
-            self.to_be_guarded = self.prob[Role.SEER].idxmax()
+            if candidates:
+                self.to_be_guarded = self.random_select(candidates)
+            else:
+                self.to_be_guarded = self.strong_agent
         return self.to_be_guarded if self.to_be_guarded != AGENT_NONE else self.me
