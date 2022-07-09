@@ -30,7 +30,7 @@ from const import CONTENT_SKIP
 import logging
 
 
-"""
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler('suki-yaki/test.log/villager')
@@ -38,7 +38,7 @@ handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-"""
+
 
 class SampleVillager(AbstractPlayer):
     """Sample villager agent."""
@@ -164,6 +164,7 @@ class SampleVillager(AbstractPlayer):
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
         self.strong_vote = []
+        self.strong_vote_w = []
         for agent in self.game_info.agent_list:
             if agent not in self.get_alive(self.game_info.agent_list):
                 #logger.debug(agent)
@@ -199,6 +200,8 @@ class SampleVillager(AbstractPlayer):
                 #logger.debug(f'strong agent {self.strong_agent}')
             elif content.topic == Topic.VOTE:
                 if content.subject == self.strong_agent_v:
+                    logger.debug(self)
+                    logger.debug(self.strong_vote)
                     self.strong_vote.append(content.target)
                 elif content.subject == self.strong_agent_w:
                     self.strong_vote_w.append(content.target)
