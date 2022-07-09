@@ -98,6 +98,7 @@ class SampleMedium(SampleVillager):
                     self.vote_candidate = self.strong_vote[-1]
                 else:
                     self.vote_candite = self.strong_agent_w
+
             if self.vote_candidate != AGENT_NONE:
                 return Content(VoteContentBuilder(self.vote_candidate))
         return CONTENT_SKIP

@@ -134,6 +134,7 @@ class SampleSeer(SampleVillager):
         if self.strong_agent_w in self.not_divined_agents:
             self.divine_candidate = self.strong_agent_w
             self.not_divined_agents.remove(self.strong_agent_w)
+
         else:
             self.divine_candidate = self.random_select(self.not_divined_agents)
         type00=type(self.divine_candidate).__name__
