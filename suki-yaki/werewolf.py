@@ -56,21 +56,17 @@ class SampleWerewolf(SamplePossessed):
             self.prob += 1.0 / 12 # WEREWOLFの確率を他の役職に平等に足した
             self.prob.at[human, Role.WEREWOLF] = 0
         # Do comingout on the day that randomly selected from the 1st, 2nd and 3rd day.
-        self.co_date = random.randint(1, 3)
         # Choose fake role randomly.
         if len(self.game_info.agent_list) == 5:
             self.fake_role = Role.VILLAGER
         else:
-            self.fake_role = random.choice([r for r in [Role.VILLAGER, Role.SEER, Role.MEDIUM]
+            self.fake_role = random.choice([r for r in [Role.VILLAGER, Role.SEER]
                                             if r in self.game_info.existing_role_list])
 
     def get_fake_judge(self) -> Judge:
         """Generate a fake judgement."""
         # Determine the target of the fake judgement.
         target: Agent = AGENT_NONE
-        if not self.has_co and self.game_info.day == 1 and self.fake_role != Role.VILLAGER:
-            self.has_co = True
-            return Content(ComingoutContentBuilder(self.me, self.fake_role))
         if self.fake_role == Role.SEER:  # Fake seer chooses a target randomly.
             if self.game_info.day != 0:
                 target = self.random_select(self.get_alive(self.not_judged_agents))
@@ -108,7 +104,7 @@ class SampleWerewolf(SamplePossessed):
             if candidates:
                 self.attack_vote_candidate = self.random_select(candidates)
             else:
-                self.attack_vote_candidate = self.strong_agent
+                self.attack_vote_candidate = self.strong_agent_v
             if self.attack_vote_candidate != AGENT_NONE:
                 return Content(AttackContentBuilder(self.attack_vote_candidate))
         return CONTENT_SKIP

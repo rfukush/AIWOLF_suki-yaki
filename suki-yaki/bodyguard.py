@@ -52,5 +52,6 @@ class SampleBodyguard(SampleVillager):
             if candidates:
                 self.to_be_guarded = self.random_select(candidates)
             else:
-                self.to_be_guarded = self.strong_agent
+                self.to_be_guarded = self.strong_agent_v
+
         return self.to_be_guarded if self.to_be_guarded != AGENT_NONE else self.me
