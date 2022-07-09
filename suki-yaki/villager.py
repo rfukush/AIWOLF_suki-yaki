@@ -164,7 +164,7 @@ class SampleVillager(AbstractPlayer):
         self.talk_list_head = 0
         self.vote_candidate = AGENT_NONE
         self.strong_vote = []
-        #self.strong_vote_w = []
+        self.strong_vote_w = []
         for agent in self.game_info.agent_list:
             if agent not in self.get_alive(self.game_info.agent_list):
                 #logger.debug(agent)
