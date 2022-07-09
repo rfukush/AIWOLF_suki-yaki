@@ -30,15 +30,15 @@ from const import CONTENT_SKIP
 import logging
 
 
-
-""" logger = logging.getLogger(__name__)
+"""
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler('suki-yaki/test.log/villager')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s  %(asctime)s  [%(name)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
- """
+"""
 
 class SampleVillager(AbstractPlayer):
     """Sample villager agent."""
@@ -173,6 +173,8 @@ class SampleVillager(AbstractPlayer):
     def update(self, game_info: GameInfo, w_p, v_p, countflag) -> None:
         if self.first_updateflag == 1:
             self.first_updateflag *= 0
+            #logger.debug(f'wp {w_p}')
+            #logger.debug(f'vp {v_p}')
             self.strong_agent_v = v_p["villagers_win"].idxmax()
             self.strong_agent_w = w_p["werewolves_win"].idxmax()
         self.game_info = game_info  # Update game information.

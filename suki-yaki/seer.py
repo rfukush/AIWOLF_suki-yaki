@@ -92,7 +92,7 @@ class SampleSeer(SampleVillager):
                     self.prob.at[judge.target, Role.WEREWOLF] = 0
 
     def update(self, game_info: GameInfo, w_p, v_p, countflag) -> None:
-        super().update(game_info)
+        super().update(game_info, w_p, v_p, countflag)
         if Role.SEER in self.comingout_map.values():
             self.fake_seers = [k for k, v in self.comingout_map.items() if v == Role.SEER]
             for fake_seer in self.fake_seers:

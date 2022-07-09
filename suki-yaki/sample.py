@@ -57,7 +57,6 @@ class SamplePlayer(AbstractPlayer):
         return self.player.divine()
 
     def finish(self) -> None:
-        self.player.finish()
         df_t = self.w_win.T
         self.w_p = (df_t/df_t.sum()).T
         df_t1 = self.v_win.T
@@ -80,7 +79,7 @@ class SamplePlayer(AbstractPlayer):
             self.firstgameflag = 0
             df_t = self.w_win.T
             self.w_p = (df_t/df_t.sum()).T
-            df_t1 = self.w_win.T
+            df_t1 = self.v_win.T
             self.v_p = (df_t1/df_t1.sum()).T
 
         if role == Role.VILLAGER:
@@ -107,7 +106,6 @@ class SamplePlayer(AbstractPlayer):
             if agent in game_info.role_map:
                 role = game_info.role_map[agent]
                 if len(game_info.role_map) == len(game_info.agent_list):
-                    logger.debug('finish')
                     self.finish_flag = 1
                     #logger.debug(status)
                     if status == Status.ALIVE and ( role == Role.WEREWOLF or role == Role.POSSESSED ):
@@ -115,14 +113,9 @@ class SamplePlayer(AbstractPlayer):
 
 
         if self.finish_flag == 1 :
-            logger.debug('finish')
-            logger.debug(f'me {game_info.me}')
             for agent in game_info.status_map:
                 status = game_info.status_map[agent]
                 role = game_info.role_map[agent]
-                logger.debug(agent)
-                logger.debug(status)
-                logger.debug(role)
                 if  role == Role.WEREWOLF or role == Role.POSSESSED :
                     if self.winner == 'werewolves':
                         self.w_win.at[agent, 'werewolves_win'] += 1
