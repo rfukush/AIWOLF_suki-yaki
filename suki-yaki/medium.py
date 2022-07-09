@@ -89,8 +89,6 @@ class SampleMedium(SampleVillager):
         if not candidates:
             candidates = self.get_alive(fake_seers)
         # Vote for one of the alive agents if there are no candidates.
-        if not candidates:
-            candidates = self.get_alive_others(self.game_info.agent_list)
         # Declare which to vote for if not declare yet or the candidate is changed.
         if self.vote_candidate == AGENT_NONE or self.vote_candidate not in candidates:
             if candidates:
