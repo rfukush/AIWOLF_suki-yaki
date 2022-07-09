@@ -201,8 +201,8 @@ class SampleVillager(AbstractPlayer):
             elif content.topic == Topic.VOTE:
                 if content.subject == self.strong_agent_v:
                     self.strong_vote.append(content.target)
-                elif content.subject == self.strong_agent_w:
-                    self.strong_vote_w.append(content.target)
+                #elif content.subject == self.strong_agent_w:
+                    #self.strong_vote_w.append(content.target)
         self.talk_list_head = len(game_info.talk_list)  # All done.
 
     def talk(self) -> Content:
